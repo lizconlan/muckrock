@@ -203,8 +203,8 @@ $("#id_status").change(function() {
     "rejected": "The request has been rejected.  Please cite all relevant exemptions.",
     "no_docs": "No responsive documents were found for the request.",
     "done": "The request is complete.  All responsive documents are attached and uploaded.",
-    "partial": "Some of the responsive documents are attached and uploaded.  More documents will be sent in a future communication.",
-  }
+    "partial": "Some of the responsive documents are attached and uploaded.  More documents will be sent in a future communication."
+  };
   if ($(this).val() == "payment") {
     $("#id_price").parent().show();
   } else {
