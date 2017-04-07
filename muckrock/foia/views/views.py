@@ -383,6 +383,10 @@ class Detail(DetailView):
         context['agency_status_choices'] = AGENCY_STATUS
         context['agency_reply_form'] = self.agency_reply_form
         context['agency_reply_formset'] = self.agency_reply_formset
+        if self.request.user.is_authenticated():
+            context['foia_cache_timeout'] = 0
+        else:
+            context['foia_cache_timeout'] = settings.DEFAULT_CACHE_TIMEOUT
         if foia.sidebar_html:
             messages.info(self.request, foia.sidebar_html)
         return context

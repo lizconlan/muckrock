@@ -415,16 +415,12 @@ class NewAgencyTask(Task):
     def get_absolute_url(self):
         return reverse('new-agency-task', kwargs={'pk': self.pk})
 
-    def pending_requests(self):
-        """Returns the requests to be acted on"""
-        return FOIARequest.objects.filter(agency=self.agency).exclude(status='started')
-
     def approve(self):
         """Approves agency, resends pending requests to it"""
         self.agency.status = 'approved'
         self.agency.save()
         # resend the first comm of each foia associated to this agency
-        for foia in self.pending_requests():
+        for foia in self.agency.foiarequest_set.exclude(status='started'):
             comms = foia.communications.all()
             if comms.count():
                 first_comm = comms[0]
@@ -434,12 +430,12 @@ class NewAgencyTask(Task):
         """Resends pending requests to replacement agency"""
         self.agency.status = 'rejected'
         self.agency.save()
-        for foia in self.pending_requests():
+        for foia in self.agency.foiarequest_set.all():
             # first switch foia to use replacement agency
             foia.agency = replacement_agency
             foia.save(comment='new agency task')
             comms = foia.communications.all()
-            if comms.count():
+            if comms.count() and foia.status != 'started':
                 first_comm = comms[0]
                 first_comm.resend(replacement_agency.email)
 
