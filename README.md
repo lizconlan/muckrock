@@ -7,25 +7,21 @@
 
 1. Check out the git repository
  1. `git clone git@github.com:MuckRock/muckrock.git`
-
 2. Set up your virtual machine
  1. Install [Vagrant][vagrant] and [VirtualBox][virtualbox]
  2. Run `vagrant up` (this will take a while)
  3. Run `vagrant ssh` to ssh into the virtual machine
-
 3. Set the secrets
  1. `cd muckrock`
  2. `cp .settings.default.sh .settings.sh`
  3. The `.settings.sh` file should **never** be checked in to the repository.
  4. Use your favorite text editor to add your API keys to settings.sh
  5. Inside your VM, run `source ~/.bashrc`.
-
 4. Populate the database and sync the files from AWS inside the virtual machine (Run all commands inside the VM)
  1. Restart the database to pick up correct permissions, `sudo service postgresql`
  2. Login to heroku toolbelt, `heroku login`
  3. Pull the database, `fab populate-db`
  4. Pull files from S3, `fab sync-aws`
-
 5. Build the search index
  1. Install watson with `fab manage:installwatson`
  2. Build the search index with `fab manage:buildwatson`
