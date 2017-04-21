@@ -13,7 +13,6 @@ from muckrock.agency.models import Agency
 from muckrock.foia.models import FOIARequest, FOIAMultiRequest, FOIAFile, FOIANote, STATUS
 from muckrock.jurisdiction.models import Jurisdiction
 
-<<<<<<< HEAD
 AGENCY_STATUS = [
     ('processed', 'Further Response Coming'),
     ('fix', 'Fix Required'),
@@ -25,10 +24,6 @@ AGENCY_STATUS = [
     ]
 
 
-||||||| merged common ancestors
-=======
-
->>>>>>> attachments
 class RequestForm(forms.Form):
     """This form creates new, single MuckRock requests"""
 
