@@ -804,7 +804,7 @@ class FOIARequest(models.Model):
                 user.profile.acct_type == 'agency')
         can_follow = (user.is_authenticated() and not is_owner and
                 not is_agency_user)
-        is_following = user in followers(self)
+        is_following = user.is_authenticated() and user in followers(self)
         is_admin = user.is_staff
         kwargs = {
             'jurisdiction': self.jurisdiction.slug,
@@ -946,4 +946,5 @@ class FOIARequest(models.Model):
             ('flag_foiarequest', 'Can flag the request for staff attention'),
             ('followup_foiarequest', 'Can send a manual follow up'),
             ('agency_reply_foiarequest', 'Can send a direct reply'),
+            ('upload_attachment_foiarequest', 'Can upload an attachment'),
             )

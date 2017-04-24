@@ -38,7 +38,6 @@ from muckrock.foia.forms import (
     FOIAEstimatedCompletionDateForm,
     FOIAAccessForm,
     FOIAAgencyReplyForm,
-    FOIAFileFormSet,
     )
 from muckrock.foia.models import (
     FOIARequest,
@@ -268,8 +267,6 @@ class Detail(DetailView):
     def __init__(self, *args, **kwargs):
         self._obj = None
         self.agency_reply_form = FOIAAgencyReplyForm()
-        self.agency_reply_formset = FOIAFileFormSet(
-                queryset=FOIAFile.objects.none())
         super(Detail, self).__init__(*args, **kwargs)
 
     def dispatch(self, request, *args, **kwargs):
@@ -370,11 +367,13 @@ class Detail(DetailView):
         context['show_estimated_date'] = foia.status not in ['submitted', 'ack', 'done', 'rejected']
         context['change_estimated_date'] = FOIAEstimatedCompletionDateForm(instance=foia)
 
-        all_tasks = Task.objects.filter_by_foia(foia, user)
-        open_tasks = [task for task in all_tasks if not task.resolved]
-        context['task_count'] = len(all_tasks)
-        context['open_task_count'] = len(open_tasks)
-        context['open_tasks'] = open_tasks
+        if user_can_edit or user.is_staff:
+            all_tasks = Task.objects.filter_by_foia(foia, user)
+            open_tasks = [task for task in all_tasks if not task.resolved]
+            context['task_count'] = len(all_tasks)
+            context['open_task_count'] = len(open_tasks)
+            context['open_tasks'] = open_tasks
+
         context['stripe_pk'] = settings.STRIPE_PUB_KEY
         context['sidebar_admin_url'] = reverse('admin:foia_foiarequest_change', args=(foia.pk,))
         context['is_thankable'] = self.request.user.has_perm(
@@ -382,7 +381,6 @@ class Detail(DetailView):
         context['files'] = foia.files.all()[:50]
         context['agency_status_choices'] = AGENCY_STATUS
         context['agency_reply_form'] = self.agency_reply_form
-        context['agency_reply_formset'] = self.agency_reply_formset
         if self.request.user.is_authenticated():
             context['foia_cache_timeout'] = 0
         else:
@@ -694,8 +692,7 @@ class Detail(DetailView):
     def _agency_reply(self, request, foia):
         """Agency reply directly through the site"""
         form = FOIAAgencyReplyForm(request.POST)
-        formset = FOIAFileFormSet(request.POST, request.FILES)
-        if form.is_valid() and formset.is_valid():
+        if form.is_valid():
             comm = FOIACommunication.objects.create(
                     foia=foia,
                     from_who=request.user.profile.agency.name,
@@ -713,7 +710,7 @@ class Detail(DetailView):
             if foia.status == 'payment':
                 foia.price = form.cleaned_data['price']
             foia.save()
-            comm.process_attachments(request.FILES)
+            foia.process_attachments(request.user)
             if foia.agency:
                 foia.agency.unmark_stale()
             comm.create_agency_notifications()
@@ -725,7 +722,6 @@ class Detail(DetailView):
             messages.success(request, 'Reply succesfully posted')
         else:
             self.agency_reply_form = form
-            self.agency_reply_formset = formset
             raise FormError
 
         return redirect(foia)

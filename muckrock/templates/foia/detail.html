@@ -12,14 +12,17 @@
 {% block type %}request{% endblock %}
 
 {% block open_graph %}
+{% cache cache_timeout foia_detail_open_graph foia.pk request.user.pk %}
 <meta property="og:title" content="{{ foia.title }}" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="{{ request.build_absolute_uri }}" />
 <meta property="og:description" content="{{ foia.user.get_full_name }} {% if foia.date_done %}made{% else %}is making{% endif %} this request{% if foia.agency %} to {{ foia.agency.name }} of {% if foia.jurisdiction.name = 'United States of America' %}the {% endif %}{{ foia.jurisdiction.name }}.{% endif %}" />
 <meta property="og:site_name" content="MuckRock" />
+{% endcache %}
 {% endblock open_graph %}
 
 {% block twitter_card %}
+{% cache cache_timeout foia_detail_twitter_card foia.pk request.user.pk %}
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:site" content="@muckrock" />
 {% if foia.user.profile.twitter %}
@@ -27,16 +30,16 @@
 {% endif %}
 <meta name="twitter:title" content="{{ foia.title }}" />
 <meta name="twitter:description" content="{{ foia.user.get_full_name }} {% if foia.date_done %}made{% else %}is making{% endif %} this request{% if foia.agency %} to {{ foia.agency.name }} of {% if foia.jurisdiction.name = 'United States of America' %}the {% endif %}{{ foia.jurisdiction.name }}.{% endif %}" />
+{% endcache %}
 {% endblock twitter_card %}
 
 {% block content %}
-
-{% cache foia_cache_timeout foia_detail foia.pk request.user.pk %}
 
 {% has_perm 'foia.appeal_foiarequest' request.user foia as can_appeal %}
 {% has_perm 'foia.agency_reply_foiarequest' request.user foia as can_agency_reply %}
 
 <article class="request detail grid__row" id="foia-{{ foia.id }}">
+    {% cond_cache foia_cache_timeout foia_detail_top foia.pk request.user.pk %}
     <section class="request properties grid__column one-quarter">
         <header>
             <section class="identity">
@@ -110,12 +113,14 @@
             {% tag_manager foia %}
         </section>
     </section>
+    {% endcache %}
     <main class="request main grid__column three-quarters">
 
         {% if foia.has_crowdfund %}
             {% crowdfund foia.crowdfund.pk %}
         {% endif %}
 
+        {% cond_cache foia_cache_timeout foia_detail_bottom foia.pk request.user.pk %}
         {% if request.user.profile.acct_type != "agency" %}
             {% include 'foia/foia_actions.html' %}
         {% endif %}
@@ -230,6 +235,7 @@
                                 {% endif %}
                             </div>
                         </div>
+                        {% if not can_agency_reply %}
                         <div class="follow-up composer" id="follow-up">
                             <form class="composer-input" method="post">
                                 <header>Send a follow up to the {{ foia.agency.name }}</header>
@@ -244,6 +250,7 @@
                                 </div>
                             </form>
                         </div>
+                        {% endif %}
                         {% if is_thankable %}
                         <div class="composer" id="thanks">
                             <form class="composer-input" method="post">
@@ -271,15 +278,8 @@ Sincerely,
                                 <header>Reply directly</header>
                                 {% csrf_token %}
                                 {% include 'lib/pattern/form.html' with form=agency_reply_form %}
-                                <div class="formset-forms">
-                                    <span>Attachments</span>
-                                    {{ agency_reply_formset.management_form }}
-                                    {% for form in agency_reply_formset.forms %}
-                                    <span class="formset-container">
-                                        {% include 'lib/pattern/form.html' %}
-                                    </span>
-                                    {% endfor %}
-                                </div>
+                                <label class="bold">Attachments</label>
+                                <div id="fine-uploader"></div>
 								<input type="hidden" name="action" value="agency_reply" />
                                 <div class="buttons">
                                     <button class="primary button" type="submit" name="agency-reply" value="1">Send</button>
@@ -536,13 +536,12 @@ Sincerely,
             {% endif %}
 
         </div>
+        {% endcache %}
     </main>
 </article>
-{% endcache %}
 {% endblock content %}
 
 {% block scripts %}
-    
     <script type="text/javascript">
         $('.datepicker').datepicker({
             maxDate: '+30d',
@@ -559,6 +558,12 @@ Sincerely,
             minDate: 0,
             firstDay: 1,
             hideIfNoPrevNext: true,
+        });
+        $('#id_date_estimate').datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'yy-mm-dd',
+            minDate: 0,
         });
         var foiaId = $('.request.detail').attr('id');
         if (foiaId != undefined) {

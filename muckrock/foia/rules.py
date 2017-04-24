@@ -58,12 +58,14 @@ def is_owner(user, foia):
 @predicate
 @skip_if_not_foia
 def is_editor(user, foia):
-    return foia.edit_collaborators.filter(pk=user.pk).exists()
+    return (user.is_authenticated() and
+            foia.edit_collaborators.filter(pk=user.pk).exists())
 
 @predicate
 @skip_if_not_foia
 def is_read_collaborator(user, foia):
-    return foia.read_collaborators.filter(pk=user.pk).exists()
+    return (user.is_authenticated() and
+            foia.read_collaborators.filter(pk=user.pk).exists())
 
 @predicate
 @skip_if_not_foia
@@ -166,5 +168,6 @@ add_perm('foia.thank_foiarequest', can_edit & is_thankable)
 add_perm('foia.flag_foiarequest', is_authenticated)
 add_perm('foia.followup_foiarequest', can_edit & ~has_status('started'))
 add_perm('foia.agency_reply_foiarequest', is_from_agency)
+add_perm('foia.upload_attachment_foiarequest', can_edit | is_from_agency)
 add_perm('foia.view_rawemail', is_advanced)
 add_perm('foia.file_multirequest', is_advanced)
