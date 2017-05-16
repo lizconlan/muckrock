@@ -10,6 +10,7 @@
 
 2. Set up your virtual machine
   1. Install [Vagrant][vagrant] and [VirtualBox][virtualbox]
+  2. Run `VBoxManage dhcpserver remove --netname HostInterfaceNetworking-vboxnet0` to avoid error **A host only network interface you're attempting to configure via DHCP already has a conflicting host only adapter with DHCP enabled.**
   2. Run `vagrant up` (this will take a while)
   3. Run `vagrant ssh` to ssh into the virtual machine
 
