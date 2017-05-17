@@ -31,6 +31,9 @@ Vagrant.configure(VERSION) do |config|
     v.customize ["modifyvm", :id, "--memory", 2048]
   end
 
+  # remove clashing versions supplied by trusty
+  config.vm.provision :shell, :inline => "sudo apt-get -y remove python"
+
   # provision with puppet
   config.vm.provision :puppet do |puppet|
     puppet.manifests_path = "puppet/manifests"
