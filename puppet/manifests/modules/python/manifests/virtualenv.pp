@@ -81,7 +81,7 @@ define python::virtualenv (
   $environment      = [],
   $path             = [ '/bin', '/usr/bin', '/usr/sbin' ],
   $cwd              = undef,
-  $timeout          = 1800,
+  $timeout          = 3600,
   $extra_pip_args   = ''
 ) {
 
