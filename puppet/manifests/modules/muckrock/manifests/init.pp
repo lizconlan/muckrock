@@ -113,7 +113,7 @@ class muckrock {
 		command => 'npm install',
 		cwd     => '/home/vagrant/muckrock',
 		creates => '/home/vagrant/muckrock/node_modules',
-		path    => '/home/vagrant/.nvm/versions/node/v5.6.0/bin/',
+		path    => '/home/vagrant/.nvm/versions/node/v5.6.0/bin',
 	}
 
 	# postgresql
