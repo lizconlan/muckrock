@@ -13,11 +13,21 @@ Vagrant.configure(VERSION) do |config|
   config.vm.network :private_network, type: :dhcp
   config.vm.network :forwarded_port, guest: PORT, host: PORT, auto_correct: true
   config.vm.synced_folder ".", "/home/vagrant/muckrock/"
+  
+  host = RbConfig::CONFIG['host_os']
+  # Give VM access to all cpu cores on the host
+  if host =~ /darwin/
+    cpus = `sysctl -n hw.physicalcpu`.to_i
+  elsif host =~ /linux/
+    cpus = `nproc`.to_i
+  else # sorry Windows folks, I can't help you
+    cpus = 1
+  end
 
   config.vm.provider "virtualbox" do |v|
     v.customize ["modifyvm", :id, "--ioapic", "on"]
     v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
-    v.customize ["modifyvm", :id, "--cpus", 4]
+    v.customize ["modifyvm", :id, "--cpus", cpus]
     v.customize ["modifyvm", :id, "--memory", 2048]
   end
 
